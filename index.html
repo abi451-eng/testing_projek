@@ -1180,15 +1180,22 @@
         });
 
         let appData = JSON.parse(localStorage.getItem('financialData')) || {};
-        let configSettings = JSON.parse(localStorage.getItem('financialConfig')) || {
-            companyName: 'WARUNG BAKSO KOTA',
-            ppnTitle: 'LAPORAN PPN HARIAN',
-            location: 'Jayapura',
-            atasanName: 'Joko Purcahyono',
-            ppnRate: 10,
-            royaltiRate: 3,
-            ppnOnRoyaltiRate: 11
+        // Ambil dari localStorage jika ada, kalau tidak: string KOSONG
+        const _saved = JSON.parse(localStorage.getItem('financialConfig')) || {};
+        let configSettings = {
+            companyName:      _saved.companyName      || '',
+            ppnTitle:         _saved.ppnTitle         || '',
+            location:         _saved.location         || '',
+            atasanName:       _saved.atasanName       || '',
+            ppnRate:          _saved.ppnRate          || 10,
+            royaltiRate:      _saved.royaltiRate      || 3,
+            ppnOnRoyaltiRate: _saved.ppnOnRoyaltiRate || 11
         };
+
+        // Cek apakah konfigurasi sudah pernah disimpan user
+        function isConfigSaved() {
+            return !!(configSettings.companyName && configSettings.location && configSettings.atasanName);
+        }
 
         let currentEditDay = null;
         let financialChart = null;
@@ -1211,11 +1218,11 @@
         }
 
         function loadConfig() {
-            // Hanya set value jika ada data di localStorage
-            if (configSettings.companyName) document.getElementById('companyName').value = configSettings.companyName;
-            if (configSettings.ppnTitle)    document.getElementById('ppnTitle').value    = configSettings.ppnTitle;
-            if (configSettings.location)    document.getElementById('location').value    = configSettings.location;
-            if (configSettings.atasanName)  document.getElementById('atasanName').value  = configSettings.atasanName;
+            // Hanya set value jika ada data tersimpan di localStorage
+            document.getElementById('companyName').value = configSettings.companyName || '';
+            document.getElementById('ppnTitle').value    = configSettings.ppnTitle    || '';
+            document.getElementById('location').value    = configSettings.location    || '';
+            document.getElementById('atasanName').value  = configSettings.atasanName  || '';
             document.getElementById('ppnRate').value          = configSettings.ppnRate;
             document.getElementById('royaltiRate').value      = configSettings.royaltiRate;
             document.getElementById('ppnOnRoyaltiRate').value = configSettings.ppnOnRoyaltiRate;
@@ -1237,6 +1244,32 @@
             updateDashboard();
             updatePPNTable();
             updateRoyaltiTable();
+        }
+
+        function showConfigWarning() {
+            // Buka config section dulu
+            const section = document.getElementById('configSection');
+            configExpanded = true;
+            section.classList.remove('collapsed');
+
+            // Tampilkan pesan peringatan
+            const banner = document.getElementById('successBanner');
+            banner.style.background = 'linear-gradient(135deg, #ffeeba 0%, #ffd966 100%)';
+            banner.style.borderLeft  = '5px solid #d39e00';
+            banner.style.color       = '#856404';
+            banner.textContent = '⚠️ Harap isi dan simpan Konfigurasi Sistem terlebih dahulu sebelum export PDF!';
+            banner.classList.add('show');
+
+            // Auto hide setelah 5 detik, kemudian reset warna
+            setTimeout(() => {
+                banner.classList.remove('show');
+                banner.style.background = '';
+                banner.style.borderLeft  = '';
+                banner.style.color       = '';
+            }, 5000);
+
+            // Scroll ke atas agar config terlihat
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleConfig() {
@@ -1895,6 +1928,12 @@
         }
 
         function exportPPNPDF() {
+            // Validasi: konfigurasi harus diisi dulu
+            if (!isConfigSaved()) {
+                showConfigWarning();
+                return;
+            }
+
             const month = parseInt(document.getElementById('monthSelect').value);
             const year = parseInt(document.getElementById('yearSelect').value);
             const monthName = months[month - 1];
@@ -2028,6 +2067,12 @@
         }
 
         function exportRoyaltiPDF() {
+            // Validasi: konfigurasi harus diisi dulu
+            if (!isConfigSaved()) {
+                showConfigWarning();
+                return;
+            }
+
             const month = parseInt(document.getElementById('monthSelect').value);
             const year = parseInt(document.getElementById('yearSelect').value);
             const monthName = months[month - 1];
