@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Daily Report Tool</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -613,8 +613,8 @@
             }
 
             .chart-container {
-                height: 260px;
-                padding: 12px;
+                height: 300px;
+                padding: 8px 4px 8px 4px;
             }
 
             .data-table {
@@ -717,7 +717,7 @@
 <body>
     <!-- Sticky Header -->
     <div class="sticky-header">
-        <h1>📊 Financial Daily Report</h1>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
         <div class="controls">
             <button class="config-toggle-btn" id="configToggleBtn" onclick="toggleConfig()">
                 ⚙️ KONFIGURASI
@@ -1634,101 +1634,146 @@
         }
 
         function updateChart() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
+            const month    = parseInt(document.getElementById('monthSelect').value);
+            const year     = parseInt(document.getElementById('yearSelect').value);
             const monthName = months[month - 1];
-            const key = `${year}-${month}`;
-            const data = appData[key] || [];
+            const key      = `${year}-${month}`;
+            const data     = appData[key] || [];
 
             if (data.length === 0) return;
 
-            const chartData = {
-                labels: data.map(d => `Hari ${d.day}`),
-                datasets: [
-                    {
-                        label: 'Revenue',
-                        data: data.map(d => d.totalPenjualan),
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                        type: 'bar',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Expense',
-                        data: data.map(d => d.totalPengeluaran),
-                        borderColor: '#F44336',
-                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                        type: 'bar',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Profit',
-                        data: data.map(d => d.saldo),
-                        borderColor: '#4CAF50',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        type: 'line',
-                        yAxisID: 'y1',
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#4CAF50'
-                    }
-                ]
-            };
+            const mobile = isMobile();
+
+            // Format angka ringkas untuk axis label
+            function fmtAxis(val) {
+                if (val >= 1000000) return (val / 1000000).toFixed(1) + ' Jt';
+                if (val >= 1000)    return (val / 1000).toFixed(0) + ' Rb';
+                return val;
+            }
 
             const ctx = document.getElementById('financialChart').getContext('2d');
-            if (financialChart) {
-                financialChart.destroy();
-            }
+            if (financialChart) financialChart.destroy();
 
             financialChart = new Chart(ctx, {
                 type: 'bar',
-                data: chartData,
+                data: {
+                    labels: data.map(d => mobile ? `${d.day}` : `Hari ${d.day}`),
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: data.map(d => d.totalPenjualan),
+                            borderColor: '#2196F3',
+                            backgroundColor: 'rgba(33,150,243,0.15)',
+                            type: 'bar',
+                            yAxisID: 'y',
+                            borderWidth: mobile ? 1 : 2,
+                            borderRadius: 3
+                        },
+                        {
+                            label: 'Expense',
+                            data: data.map(d => d.totalPengeluaran),
+                            borderColor: '#F44336',
+                            backgroundColor: 'rgba(244,67,54,0.15)',
+                            type: 'bar',
+                            yAxisID: 'y',
+                            borderWidth: mobile ? 1 : 2,
+                            borderRadius: 3
+                        },
+                        {
+                            label: 'Profit',
+                            data: data.map(d => d.saldo),
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'transparent',
+                            borderWidth: mobile ? 2 : 3,
+                            type: 'line',
+                            yAxisID: 'y',           // ← SAMA axis dengan Revenue/Expense di mobile
+                            tension: 0.3,
+                            pointRadius: mobile ? 2 : 4,
+                            pointBackgroundColor: '#4CAF50'
+                        }
+                    ]
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
+                    interaction: { mode: 'index', intersect: false },
+                    layout: {
+                        padding: {
+                            left:   mobile ? 0 : 10,
+                            right:  mobile ? 0 : 10,
+                            top:    mobile ? 5 : 10,
+                            bottom: mobile ? 5 : 10
+                        }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                font: { size: mobile ? 9 : 11 },
+                                maxRotation: mobile ? 0 : 45,
+                                autoSkip: true,
+                                maxTicksLimit: mobile ? 10 : 31
+                            },
+                            grid: { display: false }
+                        },
                         y: {
                             type: 'linear',
                             display: true,
                             position: 'left',
+                            ticks: {
+                                font: { size: mobile ? 9 : 11 },
+                                callback: function(val) { return fmtAxis(val); },
+                                maxTicksLimit: mobile ? 5 : 8
+                            },
                             title: {
-                                display: true,
+                                display: !mobile,    // Sembunyikan title axis di mobile
                                 text: 'Rupiah (Rp)',
-                                font: { weight: 'bold' }
+                                font: { size: 11, weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
                             }
                         },
                         y1: {
+                            display: !mobile,        // Sembunyikan axis kanan di mobile (gunakan 1 axis)
                             type: 'linear',
-                            display: true,
                             position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Saldo (Rp)',
-                                font: { weight: 'bold' }
+                            ticks: {
+                                font: { size: 10 },
+                                callback: function(val) { return fmtAxis(val); },
+                                maxTicksLimit: 6
                             },
-                            grid: {
-                                drawOnChartArea: false,
-                            }
+                            title: {
+                                display: false
+                            },
+                            grid: { drawOnChartArea: false }
                         }
                     },
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'top',
+                            position: mobile ? 'bottom' : 'top',   // ← Bottom di mobile
                             labels: {
-                                font: { size: 13, weight: 'bold' },
-                                padding: 15
+                                font: { size: mobile ? 10 : 12, weight: 'bold' },
+                                padding: mobile ? 8 : 15,
+                                boxWidth: mobile ? 12 : 20,
+                                usePointStyle: mobile,             // ← Dot kecil di mobile
+                                pointStyle: 'circle'
                             }
                         },
                         title: {
                             display: true,
-                            text: `Monthly Financial Performance - ${monthName} ${year}`,
-                            font: { size: 16, weight: 'bold' }
+                            text: mobile
+                                ? `${monthName} ${year}`          // ← Judul singkat di mobile
+                                : `Monthly Financial Performance - ${monthName} ${year}`,
+                            font: { size: mobile ? 12 : 15, weight: 'bold' },
+                            padding: { top: 5, bottom: mobile ? 5 : 10 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ` ${ctx.dataset.label}: Rp ${ctx.raw.toLocaleString('id-ID')}`;
+                                }
+                            }
                         }
                     }
                 }
@@ -2202,7 +2247,8 @@
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 updateDashboard();
-            }, 200);
+                updateChart();    // Re-render chart agar sesuai ukuran baru
+            }, 300);
         });
     </script>
 </body>
