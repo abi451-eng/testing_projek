@@ -2264,6 +2264,53 @@
                         };
                     });
                     totalRow.height = 20;
+
+                    // ===== BARIS RINGKASAN TAMBAHAN (di luar tabel) =====
+                    const T = totalRowNum;
+                    const moneyYellow = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } };
+                    const summaryBorder = {
+                        top:    { style: 'thin', color: { argb: 'FFD39E00' } },
+                        bottom: { style: 'thin', color: { argb: 'FFD39E00' } },
+                        left:   { style: 'thin', color: { argb: 'FFD39E00' } },
+                        right:  { style: 'thin', color: { argb: 'FFD39E00' } }
+                    };
+
+                    function setSummaryLabel(rowNum, colNum, text) {
+                        const c = ws.getCell(rowNum, colNum);
+                        c.value = text;
+                        c.font = { name: 'Arial', size: 8, italic: true, bold: true, color: { argb: 'FF856404' } };
+                        c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    }
+                    function setSummaryValue(rowNum, colNum, formula, bold) {
+                        const c = ws.getCell(rowNum, colNum);
+                        c.value = { formula: formula };
+                        c.numFmt = moneyFmt;
+                        c.alignment = { horizontal: 'right' };
+                        c.font = { name: 'Arial', size: 10, bold: !!bold, color: { argb: 'FF1A5F7A' } };
+                        c.fill = moneyYellow;
+                        c.border = summaryBorder;
+                    }
+
+                    // Gap pemisah
+                    ws.getRow(T + 1).height = 8;
+
+                    // Baris label (T+2)
+                    setSummaryLabel(T + 2, 2, 'PPN (10%)');          // kolom B (Total Penjualan)
+                    setSummaryLabel(T + 2, 3, 'Tunai Bersih');       // kolom C (Tunai)
+                    setSummaryLabel(T + 2, 4, 'Total Non-Tunai');    // kolom D (QRIS)
+                    ws.getRow(T + 2).height = 22;
+
+                    // Baris nilai (T+3)
+                    setSummaryValue(T + 3, 2, `B${T}*0.1`);                       // Total Penjualan * 10%
+                    setSummaryValue(T + 3, 3, `C${T}+I${T}-M${T}-N${T}`);         // Tunai + Pesanan - Daging - DLL
+                    setSummaryValue(T + 3, 4, `D${T}+E${T}+F${T}+G${T}+H${T}`);   // QRIS+EDC+Transfer+Gojek+Grab
+                    ws.getRow(T + 3).height = 18;
+
+                    // Nilai ke-4 (kolom Tunai, di bawah nilai sebelumnya)
+                    setSummaryLabel(T + 4, 3, 'Total (PPN + Tunai Bersih)');
+                    ws.getRow(T + 4).height = 22;
+                    setSummaryValue(T + 5, 3, `B${T + 3}+C${T + 3}`, true);       // PPN + Tunai Bersih
+                    ws.getRow(T + 5).height = 18;
                 });
 
                 // Generate & download
