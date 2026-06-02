@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Daily Report Tool</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
@@ -848,7 +848,7 @@
 <body>
     <!-- Sticky Header -->
     <div class="sticky-header">
-        <h1>📊 Financial Daily Report</h1>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
         <div class="controls">
             <button class="config-toggle-btn" id="configToggleBtn" onclick="toggleConfig()">
                 ⚙️ KONFIGURASI
@@ -1214,32 +1214,27 @@
             <h2>📥 PILIHAN EXPORT</h2>
             
             <div class="export-options">
-                <button class="export-btn" onclick="exportGrafikDashboard()">
-                    📊 Export Grafik & Dashboard
-                    <div class="export-desc">Excel format (.xlsx)</div>
-                </button>
-
                 <button class="export-btn" onclick="exportTabelData()">
-                    📋 Export Tabel Data
-                    <div class="export-desc">Excel format (.xlsx)</div>
+                    📋 Export Tabel Tahunan
+                    <div class="export-desc">Excel (.xlsx) — 1 file, per bulan jadi sheet</div>
                 </button>
 
                 <button class="export-btn" onclick="exportPPNPDF()">
                     📄 Export PPN Laporan
-                    <div class="export-desc">PDF format (Print-ready 300 DPI)</div>
+                    <div class="export-desc">PDF — laporan bulanan</div>
                 </button>
 
                 <button class="export-btn" onclick="exportRoyaltiPDF()">
                     📄 Export Royalti & PPN
-                    <div class="export-desc">PDF format (Print-ready 300 DPI)</div>
+                    <div class="export-desc">PDF — laporan bulanan</div>
                 </button>
             </div>
 
             <div style="background: #e3f2fd; border-left: 4px solid #1a5f7a; padding: 15px; border-radius: 6px; margin-top: 20px; font-size: 13px;">
                 <strong>💡 Export Tips:</strong>
                 <p style="margin-top: 8px;">
-                    <strong>Excel:</strong> Untuk presentasi & analisis di Excel<br>
-                    <strong>PDF:</strong> Untuk dokumen resmi & langsung kirim ke atasan (print-ready)
+                    <strong>Tabel Tahunan (Excel):</strong> 1 file berisi semua bulan yang sudah diisi (tiap bulan = 1 sheet). Bisa dibuka di Excel atau Google Sheets.<br>
+                    <strong>PDF:</strong> Laporan bulanan untuk dikirim ke atasan (PPN & Royalti).
                 </p>
             </div>
         </div>
@@ -2100,117 +2095,192 @@
             document.getElementById('ppnOnRoyaltiDisplay').textContent = configSettings.ppnOnRoyaltiRate;
         }
 
-        function exportGrafikDashboard() {
-            const month = parseInt(document.getElementById('monthSelect').value);
+        // ===== EXPORT TABEL TAHUNAN (Excel multi-sheet, styled) =====
+        async function exportTabelData() {
             const year = parseInt(document.getElementById('yearSelect').value);
-            const monthName = months[month - 1];
-            const metrics = calculateMetrics();
 
-            const wb = XLSX.utils.book_new();
-
-            const dashboardData = [
-                ['FINANCIAL DASHBOARD', '', '', ''],
-                [monthName + ' ' + year, '', '', ''],
-                ['', '', '', ''],
-                ['KPI SUMMARY', '', '', ''],
-                ['Metric', 'Value', 'Status', 'Notes'],
-                ['Revenue', metrics.revenue, 'Data', 'Total Pemasukan'],
-                ['Expense', metrics.expense, 'Data', 'Total Pengeluaran'],
-                ['Net Profit', metrics.profit, 'Data', 'Hasil Bersih'],
-                ['Profit Margin', metrics.margin.toFixed(2) + '%', metrics.margin > 40 ? 'Excellent' : 'Good', 'Efisiensi'],
-                ['', '', '', ''],
-            ];
-
-            const ws1 = XLSX.utils.aoa_to_sheet(dashboardData);
-            ws1['!cols'] = [{wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}];
-
-            // Format currency
-            Object.keys(ws1).forEach(cell => {
-                if (cell.match(/^A[0-9]/)) return;
-                if (cell === '!cols' || cell === '!rows') return;
-                if (ws1[cell]?.v && typeof ws1[cell].v === 'number' && cell.match(/^B/)) {
-                    ws1[cell].z = '#,##0';
+            // Kumpulkan bulan yang ada datanya untuk tahun ini (urut Jan->Des)
+            const monthsWithData = [];
+            for (let m = 1; m <= 12; m++) {
+                const key = `${year}-${m}`;
+                if (appData[key] && appData[key].length > 0) {
+                    monthsWithData.push(m);
                 }
-            });
+            }
 
-            XLSX.utils.book_append_sheet(wb, ws1, "Dashboard");
-
-            const fileName = `Laporan_Grafik_${monthName}_${year}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            showSuccessMessage(`✓ Grafik & Dashboard berhasil di-export!`);
-        }
-
-        function exportTabelData() {
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const monthName = months[month - 1];
-            const key = `${year}-${month}`;
-            const data = appData[key] || [];
-            const daysInMonth = new Date(year, month, 0).getDate();
-
-            if (data.length === 0) {
-                alert('Tidak ada data untuk di-export');
+            if (monthsWithData.length === 0) {
+                alert('Belum ada data untuk tahun ' + year + '. Isi data dulu sebelum export.');
                 return;
             }
 
-            const wb = XLSX.utils.book_new();
+            showSuccessMessage('⏳ Menyiapkan file Excel...');
 
-            const wsData = [
-                ['LAPORAN KEUANGAN BULANAN'],
-                [monthName + ' ' + year],
-                [''],
-                ['', 'TOTAL PENJUALAN', 'TUNAI', 'QRIS', 'EDC', 'TRANSFER', 'GOJEK', 'GRAB', 'PESANAN', 'TOTAL PENGELUARAN', 'BELANJA PAGI', 'BELANJA SORE', 'DAGING', 'DLL', 'KETERANGAN', 'SALDO']
-            ];
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'Financial Daily Report';
+                workbook.created = new Date();
 
-            const dataStartRow = 5;
-            const dataEndRow = 4 + data.length;
+                // Definisi kolom (header + key + lebar)
+                const columns = [
+                    { header: 'TGL',               key: 'day',             width: 6  },
+                    { header: 'TOTAL PENJUALAN',   key: 'totalPenjualan',  width: 18 },
+                    { header: 'TUNAI',             key: 'tunai',           width: 15 },
+                    { header: 'QRIS',              key: 'qris',            width: 14 },
+                    { header: 'EDC',               key: 'edc',             width: 14 },
+                    { header: 'TRANSFER',          key: 'transfer',        width: 14 },
+                    { header: 'GOJEK',             key: 'gojek',           width: 13 },
+                    { header: 'GRAB',              key: 'grab',            width: 13 },
+                    { header: 'PESANAN',           key: 'pesanan',         width: 14 },
+                    { header: 'TOTAL PENGELUARAN', key: 'totalPengeluaran',width: 18 },
+                    { header: 'BELANJA PAGI',      key: 'belanjaPagi',     width: 15 },
+                    { header: 'BELANJA SORE',      key: 'belanjaSore',     width: 15 },
+                    { header: 'DAGING',            key: 'daging',          width: 14 },
+                    { header: 'DLL',               key: 'dll',             width: 14 },
+                    { header: 'KETERANGAN',        key: 'keterangan',      width: 28 },
+                    { header: 'SALDO',             key: 'saldo',           width: 16 }
+                ];
 
-            data.forEach((item, index) => {
-                const rowNum = dataStartRow + index;
-                wsData.push([
-                    item.day,
-                    item.totalPenjualan,
-                    item.tunai,
-                    item.qris,
-                    item.edc,
-                    item.transfer,
-                    item.gojek,
-                    item.grab,
-                    item.pesanan,
-                    item.totalPengeluaran,
-                    item.belanjaPagi,
-                    item.belanjaSore,
-                    item.daging,
-                    item.dll,
-                    item.keterangan,
-                    item.saldo
-                ]);
-            });
+                const moneyKeys = ['totalPenjualan','tunai','qris','edc','transfer','gojek','grab','pesanan','totalPengeluaran','belanjaPagi','belanjaSore','daging','dll','saldo'];
+                const moneyFmt = '#,##0';
 
-            wsData.push(['TOTAL', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
-            const totalRow = dataEndRow + 1;
-            wsData.push(['TAX/SERVICE CHARGE (10%)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
-            const taxRow = totalRow + 1;
-            wsData.push(['GRAND TOTAL', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+                monthsWithData.forEach(m => {
+                    const monthName = months[m - 1];
+                    const key = `${year}-${m}`;
+                    const data = appData[key];
 
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!cols'] = Array(16).fill({wch: 16});
+                    const ws = workbook.addWorksheet(monthName, {
+                        views: [{ state: 'frozen', ySplit: 4 }] // bekukan sampai header
+                    });
 
-            // Format as currency (Rp)
-            for (let i = dataStartRow; i <= dataEndRow + 2; i++) {
-                for (let j = 1; j < 16; j++) {
-                    const cellRef = XLSX.utils.encode_cell({r: i-1, c: j});
-                    if (ws[cellRef]) {
-                        ws[cellRef].z = '#,##0';
-                    }
-                }
+                    // --- Baris 1: Judul besar ---
+                    ws.mergeCells(1, 1, 1, columns.length);
+                    const titleCell = ws.getCell(1, 1);
+                    titleCell.value = 'LAPORAN KEUANGAN HARIAN';
+                    titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0D3D52' } };
+                    ws.getRow(1).height = 24;
+
+                    // --- Baris 2: Sub judul bulan & tahun ---
+                    ws.mergeCells(2, 1, 2, columns.length);
+                    const subCell = ws.getCell(2, 1);
+                    subCell.value = monthName.toUpperCase() + ' ' + year;
+                    subCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF1A5F7A' } };
+                    subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F4F8' } };
+                    ws.getRow(2).height = 18;
+
+                    // --- Baris 3: kosong (spacer) ---
+                    ws.getRow(3).height = 6;
+
+                    // --- Baris 4: Header kolom ---
+                    const headerRow = ws.getRow(4);
+                    columns.forEach((col, i) => {
+                        const cell = headerRow.getCell(i + 1);
+                        cell.value = col.header;
+                        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A5F7A' } };
+                        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                        cell.border = {
+                            top:    { style: 'thin', color: { argb: 'FF0D3D52' } },
+                            left:   { style: 'thin', color: { argb: 'FF0D3D52' } },
+                            bottom: { style: 'thin', color: { argb: 'FF0D3D52' } },
+                            right:  { style: 'thin', color: { argb: 'FF0D3D52' } }
+                        };
+                    });
+                    headerRow.height = 28;
+
+                    // Set lebar kolom
+                    columns.forEach((col, i) => {
+                        ws.getColumn(i + 1).width = col.width;
+                    });
+
+                    // --- Baris data ---
+                    const firstDataRow = 5;
+                    data.forEach((item, idx) => {
+                        const r = firstDataRow + idx;
+                        const row = ws.getRow(r);
+                        columns.forEach((col, i) => {
+                            const cell = row.getCell(i + 1);
+                            cell.value = item[col.key] !== undefined ? item[col.key] : '';
+
+                            // Border tipis
+                            cell.border = {
+                                top:    { style: 'hair', color: { argb: 'FFCCCCCC' } },
+                                left:   { style: 'hair', color: { argb: 'FFCCCCCC' } },
+                                bottom: { style: 'hair', color: { argb: 'FFCCCCCC' } },
+                                right:  { style: 'hair', color: { argb: 'FFCCCCCC' } }
+                            };
+                            cell.font = { name: 'Arial', size: 10 };
+
+                            if (col.key === 'day') {
+                                cell.alignment = { horizontal: 'center' };
+                            } else if (col.key === 'keterangan') {
+                                cell.alignment = { horizontal: 'left' };
+                            } else if (moneyKeys.includes(col.key)) {
+                                cell.numFmt = moneyFmt;
+                                cell.alignment = { horizontal: 'right' };
+                            }
+                        });
+                        // Zebra striping
+                        if (idx % 2 === 1) {
+                            columns.forEach((col, i) => {
+                                row.getCell(i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F8FA' } };
+                            });
+                        }
+                        row.height = 16;
+                    });
+
+                    // --- Baris TOTAL (pakai formula SUM) ---
+                    const lastDataRow = firstDataRow + data.length - 1;
+                    const totalRowNum = lastDataRow + 1;
+                    const totalRow = ws.getRow(totalRowNum);
+
+                    columns.forEach((col, i) => {
+                        const cell = totalRow.getCell(i + 1);
+                        const colLetter = cell.address.replace(/[0-9]/g, '');
+
+                        if (i === 0) {
+                            cell.value = 'TOTAL';
+                            cell.alignment = { horizontal: 'center' };
+                        } else if (moneyKeys.includes(col.key) && col.key !== 'saldo') {
+                            // Jumlahkan kolom uang (kecuali saldo, krn saldo itu running balance)
+                            cell.value = { formula: `SUM(${colLetter}${firstDataRow}:${colLetter}${lastDataRow})` };
+                            cell.numFmt = moneyFmt;
+                            cell.alignment = { horizontal: 'right' };
+                        } else if (col.key === 'saldo') {
+                            // Saldo akhir = nilai saldo baris terakhir
+                            cell.value = { formula: `${colLetter}${lastDataRow}` };
+                            cell.numFmt = moneyFmt;
+                            cell.alignment = { horizontal: 'right' };
+                        }
+                        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF1A5F7A' } };
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD4E6EF' } };
+                        cell.border = {
+                            top:    { style: 'double', color: { argb: 'FF1A5F7A' } },
+                            bottom: { style: 'double', color: { argb: 'FF1A5F7A' } },
+                            left:   { style: 'thin',   color: { argb: 'FF1A5F7A' } },
+                            right:  { style: 'thin',   color: { argb: 'FF1A5F7A' } }
+                        };
+                    });
+                    totalRow.height = 20;
+                });
+
+                // Generate & download
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Rekap_Keuangan_${year}.xlsx`;
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                showSuccessMessage(`✓ Berhasil! ${monthsWithData.length} bulan ter-export ke 1 file Excel.`);
+            } catch (err) {
+                console.error(err);
+                alert('Gagal membuat file Excel: ' + err.message);
             }
-
-            XLSX.utils.book_append_sheet(wb, ws, "Data Harian");
-
-            const fileName = `Laporan_${monthName}_${year}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            showSuccessMessage(`✓ Tabel Data berhasil di-export!`);
         }
 
         function exportPPNPDF() {
