@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Daily Report Tool</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -389,28 +389,45 @@
         }
 
         .data-table th {
-            padding: 14px;
+            padding: 14px 16px;
             text-align: left;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .data-table td {
-            padding: 12px;
+            padding: 12px 16px;
             border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
         }
 
         .data-table tbody tr:hover {
             background: #f8f9fa;
         }
 
+        /* Alignment classes - header & cell SEJAJAR */
+        .col-center { text-align: center !important; }
+        .col-right  { text-align: right !important; }
+        .col-left   { text-align: left !important; }
+
+        /* Kolom angka uang: rata kanan, prefix Rp menempel kiri-nilai */
         .currency {
             text-align: right;
             font-family: 'Courier New', monospace;
             font-weight: 600;
             color: #1a5f7a;
+            white-space: nowrap;
         }
+        /* Rp prefix dibuat konsisten lebarnya pakai flex */
+        .currency .money-cell {
+            display: inline-flex;
+            justify-content: space-between;
+            min-width: 110px;
+            gap: 8px;
+        }
+        .currency .money-cell .rp { color: #5a8aa0; font-weight: 600; }
 
         .action-buttons {
             display: flex;
@@ -625,6 +642,11 @@
                 padding: 8px;
             }
 
+            .currency .money-cell {
+                min-width: 80px;
+                gap: 4px;
+            }
+
             .config-grid {
                 grid-template-columns: 1fr;
             }
@@ -826,7 +848,7 @@
 <body>
     <!-- Sticky Header -->
     <div class="sticky-header">
-        <h1>📊 Financial Daily Report</h1>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
         <div class="controls">
             <button class="config-toggle-btn" id="configToggleBtn" onclick="toggleConfig()">
                 ⚙️ KONFIGURASI
@@ -1062,13 +1084,13 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Hari</th>
-                            <th>Total Penjualan</th>
-                            <th>Tunai</th>
-                            <th>Total Pengeluaran</th>
-                            <th>Saldo</th>
-                            <th>Keterangan</th>
-                            <th>Action</th>
+                            <th class="col-center">Hari</th>
+                            <th class="col-right">Total Penjualan</th>
+                            <th class="col-right">Tunai</th>
+                            <th class="col-right">Total Pengeluaran</th>
+                            <th class="col-right">Saldo</th>
+                            <th class="col-left">Keterangan</th>
+                            <th class="col-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody">
@@ -1126,9 +1148,9 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Tanggal</th>
-                            <th>Pendapatan (Rp)</th>
-                            <th>PPN (Rp)</th>
+                            <th class="col-center">Tanggal</th>
+                            <th class="col-right">Pendapatan (Rp)</th>
+                            <th class="col-right">PPN (Rp)</th>
                         </tr>
                     </thead>
                     <tbody id="ppnTableBody">
@@ -1766,13 +1788,13 @@
             data.forEach(item => {
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${item.day}</td>
-                    <td class="currency">Rp ${item.totalPenjualan.toLocaleString('id-ID')}</td>
-                    <td class="currency">Rp ${item.tunai.toLocaleString('id-ID')}</td>
-                    <td class="currency">Rp ${item.totalPengeluaran.toLocaleString('id-ID')}</td>
-                    <td class="currency"><strong>Rp ${item.saldo.toLocaleString('id-ID')}</strong></td>
-                    <td>${item.keterangan || '-'}</td>
-                    <td>
+                    <td class="col-center">${item.day}</td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span>${item.totalPenjualan.toLocaleString('id-ID')}</span></span></td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span>${item.tunai.toLocaleString('id-ID')}</span></span></td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span>${item.totalPengeluaran.toLocaleString('id-ID')}</span></span></td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span><strong>${item.saldo.toLocaleString('id-ID')}</strong></span></span></td>
+                    <td class="col-left">${item.keterangan || '-'}</td>
+                    <td class="col-center">
                         <div class="action-buttons">
                             <button class="btn btn-primary" onclick="editData(${item.day})">Edit</button>
                             <button class="btn btn-danger" onclick="deleteData(${item.day})">Delete</button>
@@ -2042,9 +2064,9 @@
 
                 const row = tbody.insertRow();
                 row.innerHTML = `
-                    <td>${item.day}</td>
-                    <td class="currency">Rp ${item.totalPenjualan.toLocaleString('id-ID')}</td>
-                    <td class="currency">Rp ${ppnAmount.toLocaleString('id-ID')}</td>
+                    <td class="col-center">${item.day}</td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span>${item.totalPenjualan.toLocaleString('id-ID')}</span></span></td>
+                    <td class="currency"><span class="money-cell"><span class="rp">Rp</span><span>${ppnAmount.toLocaleString('id-ID')}</span></span></td>
                 `;
             });
 
@@ -2052,9 +2074,9 @@
             const jumlahRow = tbody.insertRow();
             jumlahRow.style.background = '#f0f4f7';
             jumlahRow.innerHTML = `
-                <td style="font-weight: 700; color: #1a5f7a;">JUMLAH</td>
-                <td class="currency" style="font-weight: 700; color: #1a5f7a;">Rp ${totalPendapatan.toLocaleString('id-ID')}</td>
-                <td class="currency" style="font-weight: 700; color: #1a5f7a;">Rp ${totalPPN.toLocaleString('id-ID')}</td>
+                <td class="col-center" style="font-weight: 700; color: #1a5f7a;">JUMLAH</td>
+                <td class="currency" style="font-weight: 700;"><span class="money-cell"><span class="rp">Rp</span><span>${totalPendapatan.toLocaleString('id-ID')}</span></span></td>
+                <td class="currency" style="font-weight: 700;"><span class="money-cell"><span class="rp">Rp</span><span>${totalPPN.toLocaleString('id-ID')}</span></span></td>
             `;
 
             document.getElementById('ppnRateDisplay').textContent = configSettings.ppnRate;
