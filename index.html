@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Daily Report Tool</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -67,6 +67,127 @@
             background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
+
+        /* ===== HAMBURGER BUTTON ===== */
+        .hamburger-btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .hamburger-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            max-width: 80vw;
+            height: 100%;
+            background: #ffffff;
+            box-shadow: 2px 0 18px rgba(0,0,0,0.18);
+            z-index: 2000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.open { transform: translateX(0); }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #1a5f7a 0%, #0d3d52 100%);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .sidebar-title { font-size: 17px; font-weight: 700; }
+        .sidebar-close {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            width: 30px; height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .sidebar-close:hover { background: rgba(255,255,255,0.35); }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 12px 0;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .sidebar-menu li { margin: 0; }
+
+        .sidebar-item {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 14px 22px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            font-family: inherit;
+        }
+        .sidebar-item:hover { background: #f0f4f7; }
+        .sidebar-item.active {
+            background: #e8f4f8;
+            color: #1a5f7a;
+            border-left-color: #1a5f7a;
+        }
+        .sidebar-item span { font-size: 15px; }
+
+        .sidebar-footer {
+            border-top: 1px solid #eee;
+            padding: 8px 0;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .sidebar-overlay.show { opacity: 1; visibility: visible; }
+
+        /* ===== VIEW PANELS ===== */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .view-empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .view-empty-icon { font-size: 50px; margin-bottom: 12px; opacity: 0.5; }
 
         .container {
             max-width: 1400px;
@@ -586,15 +707,24 @@
 
         @media (max-width: 768px) {
             .sticky-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
-                padding: 12px;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                flex-wrap: nowrap;
             }
 
             .sticky-header h1 {
-                font-size: 16px;
+                font-size: 14px;
             }
+
+            .config-toggle-btn {
+                padding: 7px 10px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .sidebar { width: 240px; }
 
             .form-grid {
                 grid-template-columns: 1fr;
@@ -848,13 +978,32 @@
 <body>
     <!-- Sticky Header -->
     <div class="sticky-header">
-        <h1>📊 Financial Daily Report</h1>
+        <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
         <div class="controls">
             <button class="config-toggle-btn" id="configToggleBtn" onclick="toggleConfig()">
                 ⚙️ KONFIGURASI
             </button>
         </div>
     </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-title">📋 Menu</span>
+            <button class="sidebar-close" onclick="closeSidebar()" aria-label="Tutup">✕</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><button class="sidebar-item active" data-view="input"     onclick="showView('input', this)">📝 <span>Input Data</span></button></li>
+            <li><button class="sidebar-item"        data-view="dashboard" onclick="showView('dashboard', this)">📊 <span>Dashboard</span></button></li>
+            <li><button class="sidebar-item"        data-view="pajak"     onclick="showView('pajak', this)">💰 <span>Laporan Pajak</span></button></li>
+            <li><button class="sidebar-item"        data-view="export"    onclick="showView('export', this)">📥 <span>Export</span></button></li>
+        </ul>
+        <div class="sidebar-footer">
+            <button class="sidebar-item" onclick="toggleConfig(); closeSidebar();">⚙️ <span>Konfigurasi</span></button>
+        </div>
+    </nav>
 
     <div class="container">
         <!-- Success Banner -->
@@ -914,6 +1063,9 @@
 
         <!-- Month Selector -->
         <div class="month-selector">
+            <label>📆 Pilih Tanggal:</label>
+            <select id="daySelect"></select>
+
             <label>📅 Pilih Bulan:</label>
             <select id="monthSelect" onchange="updateUI()">
                 <option value="1">Januari</option>
@@ -947,16 +1099,13 @@
             </select>
         </div>
 
+        <!-- ===== VIEW: INPUT ===== -->
+        <div class="view-panel active" id="view-input">
         <!-- Form Section -->
         <div class="form-section">
             <h2 id="formTitle">📝 Input Data Harian</h2>
 
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Hari/Tanggal *</label>
-                    <select id="daySelect"></select>
-                </div>
-
                 <div class="form-group">
                     <label>Total Penjualan *</label>
                     <input type="text" inputmode="numeric" id="totalPenjualan" class="money-input" placeholder="0" autocomplete="off">
@@ -1099,6 +1248,16 @@
             </div>
         </div>
 
+        <!-- Empty state untuk Input view -->
+        <div id="emptyInput" class="view-empty" style="display:none;">
+            <div class="view-empty-icon">📋</div>
+            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Belum ada data bulan ini</div>
+            <div style="font-size: 13px; color: #bbb;">Isi form di atas untuk mulai mencatat</div>
+        </div>
+        </div><!-- /view-input -->
+
+        <!-- ===== VIEW: DASHBOARD ===== -->
+        <div class="view-panel" id="view-dashboard">
         <!-- Financial Dashboard Section -->
         <div id="dashboardSection" style="display:none;" class="dashboard-section">
             <h2>📊 FINANCIAL DASHBOARD</h2>
@@ -1141,6 +1300,16 @@
             </div>
         </div>
 
+        <!-- Empty state untuk Dashboard view -->
+        <div id="emptyDashboard" class="view-empty" style="display:none;">
+            <div class="view-empty-icon">📊</div>
+            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Dashboard masih kosong</div>
+            <div style="font-size: 13px; color: #bbb;">Input data dulu di menu Input Data</div>
+        </div>
+        </div><!-- /view-dashboard -->
+
+        <!-- ===== VIEW: LAPORAN PAJAK (PPN + Royalti) ===== -->
+        <div class="view-panel" id="view-pajak">
         <!-- PPN Table Section -->
         <div id="ppnSection" style="display:none;" class="data-section">
             <h2>💰 LAPORAN PPN HARIAN</h2>
@@ -1209,6 +1378,16 @@
             </div>
         </div>
 
+        <!-- Empty state untuk Pajak view -->
+        <div id="emptyPajak" class="view-empty" style="display:none;">
+            <div class="view-empty-icon">💰</div>
+            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Belum ada data pajak</div>
+            <div style="font-size: 13px; color: #bbb;">Input data dulu di menu Input Data</div>
+        </div>
+        </div><!-- /view-pajak -->
+
+        <!-- ===== VIEW: EXPORT ===== -->
+        <div class="view-panel" id="view-export">
         <!-- Export Options -->
         <div id="exportSection" style="display:none;" class="data-section">
             <h2>📥 PILIHAN EXPORT</h2>
@@ -1239,14 +1418,13 @@
             </div>
         </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="data-section">
-            <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div style="font-size: 18px; margin-bottom: 8px; font-weight: 600;">Belum ada data</div>
-                <div style="font-size: 13px; color: #bbb;">Mulai dengan menginput data harian di form di atas</div>
-            </div>
+        <!-- Empty state untuk Export view -->
+        <div id="emptyExport" class="view-empty" style="display:none;">
+            <div class="view-empty-icon">📥</div>
+            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Belum ada yang bisa di-export</div>
+            <div style="font-size: 13px; color: #bbb;">Input data dulu di menu Input Data</div>
         </div>
+        </div><!-- /view-export -->
     </div>
 
 
@@ -1763,22 +1941,22 @@
             const tbody = document.getElementById('dataTableBody');
             tbody.innerHTML = '';
 
-            if (data.length === 0) {
-                document.getElementById('dataSection').style.display = 'none';
-                document.getElementById('dashboardSection').style.display = 'none';
-                document.getElementById('ppnSection').style.display = 'none';
-                document.getElementById('royaltiSection').style.display = 'none';
-                document.getElementById('exportSection').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                return;
-            }
+            const hasData = data.length > 0;
 
-            document.getElementById('dataSection').style.display = 'block';
-            document.getElementById('dashboardSection').style.display = 'block';
-            document.getElementById('ppnSection').style.display = 'block';
-            document.getElementById('royaltiSection').style.display = 'block';
-            document.getElementById('exportSection').style.display = 'block';
-            document.getElementById('emptyState').style.display = 'none';
+            // Konten sections
+            document.getElementById('dataSection').style.display      = hasData ? 'block' : 'none';
+            document.getElementById('dashboardSection').style.display = hasData ? 'block' : 'none';
+            document.getElementById('ppnSection').style.display       = hasData ? 'block' : 'none';
+            document.getElementById('royaltiSection').style.display   = hasData ? 'block' : 'none';
+            document.getElementById('exportSection').style.display    = hasData ? 'block' : 'none';
+
+            // Empty states per view
+            document.getElementById('emptyInput').style.display     = hasData ? 'none' : 'block';
+            document.getElementById('emptyDashboard').style.display = hasData ? 'none' : 'block';
+            document.getElementById('emptyPajak').style.display     = hasData ? 'none' : 'block';
+            document.getElementById('emptyExport').style.display    = hasData ? 'none' : 'block';
+
+            if (!hasData) return;
 
             data.forEach(item => {
                 const row = tbody.insertRow();
@@ -2597,6 +2775,45 @@
             } catch (error) {
                 console.error('PDF Export Error:', error);
                 alert('Error: ' + error.message);
+            }
+        }
+
+        // ===== SIDEBAR & VIEW NAVIGATION =====
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            const isOpen = sb.classList.contains('open');
+            if (isOpen) { closeSidebar(); }
+            else { sb.classList.add('open'); ov.classList.add('show'); }
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        function showView(viewName, btnEl) {
+            // Sembunyikan semua panel, tampilkan yang dipilih
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            const panel = document.getElementById('view-' + viewName);
+            if (panel) panel.classList.add('active');
+
+            // Update status aktif di menu
+            document.querySelectorAll('.sidebar-item[data-view]').forEach(b => b.classList.remove('active'));
+            if (btnEl) {
+                btnEl.classList.add('active');
+            } else {
+                const match = document.querySelector(`.sidebar-item[data-view="${viewName}"]`);
+                if (match) match.classList.add('active');
+            }
+
+            // Tutup sidebar & scroll ke atas
+            closeSidebar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Re-render chart kalau masuk dashboard (chart perlu container terlihat)
+            if (viewName === 'dashboard') {
+                setTimeout(() => { updateChart(); }, 100);
             }
         }
 
