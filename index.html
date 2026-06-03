@@ -1594,8 +1594,34 @@
         <!-- Empty state untuk Export view -->
         <div id="emptyExport" class="view-empty" style="display:none;">
             <div class="view-empty-icon">📥</div>
-            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Belum ada yang bisa di-export</div>
-            <div style="font-size: 13px; color: #bbb;">Input data dulu di menu Input Data</div>
+            <div style="font-size: 17px; margin-bottom: 6px; font-weight: 600;">Belum ada laporan untuk di-export</div>
+            <div style="font-size: 13px; color: #bbb;">Input data dulu di menu Input Data — atau restore dari backup di bawah</div>
+        </div>
+
+        <!-- Backup & Restore (SELALU tampil) -->
+        <div class="data-section" style="margin-top: 20px;">
+            <h2>💾 BACKUP & RESTORE DATA</h2>
+            <div class="export-options">
+                <button class="export-btn" onclick="exportBackupJSON()">
+                    ⬇️ Backup Data (.json)
+                    <div class="export-desc">Simpan semua data ke 1 file</div>
+                </button>
+
+                <button class="export-btn" onclick="document.getElementById('restoreFileInput').click()">
+                    ⬆️ Restore Data (.json)
+                    <div class="export-desc">Muat data dari file backup</div>
+                </button>
+            </div>
+
+            <input type="file" id="restoreFileInput" accept=".json,application/json" style="display:none;" onchange="restoreBackupJSON(event)">
+
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 6px; margin-top: 20px; font-size: 13px; color: #856404;">
+                <strong>⚠️ Penting soal Backup:</strong>
+                <p style="margin-top: 8px;">
+                    Data tersimpan di browser perangkat ini saja. Lakukan <strong>backup rutin</strong> agar aman bila ganti HP/laptop atau browser dibersihkan.<br>
+                    <strong>Restore akan mengganti</strong> seluruh data saat ini dengan isi file backup.
+                </p>
+            </div>
         </div>
         </div><!-- /view-export -->
     </div>
@@ -2152,6 +2178,70 @@
             banner.textContent = message;
             banner.classList.add('show');
             setTimeout(() => banner.classList.remove('show'), 4000);
+        }
+
+        // ===== BACKUP & RESTORE (JSON) =====
+        function exportBackupJSON() {
+            const backup = {
+                _meta: {
+                    app: 'Financial Daily Report',
+                    version: 'V4.5',
+                    exportedAt: new Date().toISOString()
+                },
+                financialData: appData,
+                financialConfig: configSettings
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `backup_keuangan_${stamp}.json`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showSuccessMessage('✓ Backup berhasil! File JSON sudah terunduh.');
+        }
+
+        function restoreBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const fd = (data.financialData !== undefined) ? data.financialData : null;
+                    const fc = (data.financialConfig !== undefined) ? data.financialConfig : null;
+
+                    if (fd === null && fc === null) {
+                        alert('❌ File tidak dikenali. Pastikan ini file backup dari aplikasi ini.');
+                        return;
+                    }
+
+                    if (!confirm('⚠️ Restore akan MENGGANTI semua data saat ini dengan isi file backup.\n\nLanjutkan?')) {
+                        return;
+                    }
+
+                    if (fd) {
+                        appData = fd;
+                        localStorage.setItem('financialData', JSON.stringify(appData));
+                    }
+                    if (fc) {
+                        configSettings = fc;
+                        localStorage.setItem('financialConfig', JSON.stringify(configSettings));
+                    }
+
+                    loadConfig();
+                    updateUI();
+                    showSuccessMessage('✓ Data berhasil di-restore dari backup!');
+                } catch (err) {
+                    console.error(err);
+                    alert('❌ Gagal membaca file: ' + err.message);
+                } finally {
+                    event.target.value = ''; // reset agar bisa pilih file sama lagi
+                }
+            };
+            reader.readAsText(file);
         }
 
         function resetForm() {
