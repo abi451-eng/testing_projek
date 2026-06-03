@@ -788,6 +788,33 @@
             color: #666;
         }
 
+        .chart-toggle {
+            display: inline-flex;
+            background: #eef2f5;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 16px;
+            gap: 4px;
+        }
+        .chart-toggle-btn {
+            border: none;
+            background: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #6b7c8c;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .chart-toggle-btn:hover { color: #1a5f7a; }
+        .chart-toggle-btn.active {
+            background: white;
+            color: #1a5f7a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
         .chart-container {
             position: relative;
             height: 400px;
@@ -1463,6 +1490,12 @@
 
             <div id="trendAlert" style="display:none;"></div>
 
+            <!-- Toggle Harian / Bulanan -->
+            <div class="chart-toggle">
+                <button type="button" class="chart-toggle-btn active" id="toggleHarian" onclick="setChartMode('harian')">📅 Harian</button>
+                <button type="button" class="chart-toggle-btn" id="toggleBulanan" onclick="setChartMode('bulanan')">🗓️ Bulanan</button>
+            </div>
+
             <div class="chart-container">
                 <canvas id="financialChart"></canvas>
             </div>
@@ -1721,6 +1754,7 @@
 
         let currentEditDay = null;
         let financialChart = null;
+        let chartMode = 'harian';   // 'harian' atau 'bulanan'
         let configExpanded = false;
 
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -2422,6 +2456,27 @@
             updateTrendAlert(metrics);
         }
 
+        function setChartMode(mode) {
+            chartMode = mode;
+            document.getElementById('toggleHarian').classList.toggle('active', mode === 'harian');
+            document.getElementById('toggleBulanan').classList.toggle('active', mode === 'bulanan');
+            updateChart();
+        }
+
+        // Hitung agregat per bulan untuk satu tahun
+        function getMonthlyAggregates(year) {
+            const result = [];
+            for (let m = 1; m <= 12; m++) {
+                const data = appData[`${year}-${m}`] || [];
+                if (data.length === 0) continue;
+                const revenue = data.reduce((s, i) => s + i.totalPenjualan, 0);
+                const expense = data.reduce((s, i) => s + i.totalPengeluaran, 0);
+                const profit  = data[data.length - 1].saldo; // saldo akhir bulan
+                result.push({ month: m, name: months[m - 1], revenue, expense, profit });
+            }
+            return result;
+        }
+
         function updateChart() {
             const month    = parseInt(document.getElementById('monthSelect').value);
             const year     = parseInt(document.getElementById('yearSelect').value);
@@ -2429,7 +2484,9 @@
             const key      = `${year}-${month}`;
             const data     = appData[key] || [];
 
-            if (data.length === 0) return;
+            // Untuk mode harian butuh data bulan ini; mode bulanan butuh minimal 1 bulan ada data
+            if (chartMode === 'harian' && data.length === 0) return;
+            if (chartMode === 'bulanan' && getMonthlyAggregates(year).length === 0) return;
 
             const mobile = isMobile();
 
@@ -2451,21 +2508,40 @@
                 g.addColorStop(1, c2);
                 return g;
             }
-            const gradRevenue = makeGradient('rgba(33,150,243,0.95)', 'rgba(33,150,243,0.35)');
-            const gradExpense = makeGradient('rgba(244,67,54,0.95)',  'rgba(244,67,54,0.30)');
-            // gradien area untuk garis profit
-            const gradProfit = makeGradient('rgba(76,175,80,0.35)', 'rgba(76,175,80,0.02)');
+            // Warna lebih tegas (bawah tetap pekat, tidak loyo) tapi tidak terlalu strong
+            const gradRevenue = makeGradient('rgba(25,118,210,1)', 'rgba(33,150,243,0.7)');
+            const gradExpense = makeGradient('rgba(211,47,47,1)',  'rgba(244,67,54,0.7)');
+            // Area profit sedikit lebih tebal opacity-nya (tapi tidak berlebihan)
+            const gradProfit  = makeGradient('rgba(76,175,80,0.45)', 'rgba(76,175,80,0.05)');
+
+            // ===== Susun label & data sesuai mode =====
+            let labels, revenueData, expenseData, profitData, chartTitle;
+
+            if (chartMode === 'bulanan') {
+                const agg = getMonthlyAggregates(year);
+                labels      = agg.map(a => mobile ? a.name.slice(0, 3) : a.name);
+                revenueData = agg.map(a => a.revenue);
+                expenseData = agg.map(a => a.expense);
+                profitData  = agg.map(a => a.profit);
+                chartTitle  = mobile ? `Tahun ${year}` : `Performa Bulanan — Tahun ${year}`;
+            } else {
+                labels      = data.map(d => mobile ? `${d.day}` : `Hari ${d.day}`);
+                revenueData = data.map(d => d.totalPenjualan);
+                expenseData = data.map(d => d.totalPengeluaran);
+                profitData  = data.map(d => d.saldo);
+                chartTitle  = mobile ? `${monthName} ${year}` : `Performa Harian — ${monthName} ${year}`;
+            }
 
             financialChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.map(d => mobile ? `${d.day}` : `Hari ${d.day}`),
+                    labels: labels,
                     datasets: [
                         {
                             label: 'Revenue',
-                            data: data.map(d => d.totalPenjualan),
+                            data: revenueData,
                             backgroundColor: gradRevenue,
-                            borderColor: 'rgba(33,150,243,1)',
+                            borderColor: 'rgba(25,118,210,1)',
                             type: 'bar',
                             yAxisID: 'y',
                             borderWidth: 0,
@@ -2477,9 +2553,9 @@
                         },
                         {
                             label: 'Expense',
-                            data: data.map(d => d.totalPengeluaran),
+                            data: expenseData,
                             backgroundColor: gradExpense,
-                            borderColor: 'rgba(244,67,54,1)',
+                            borderColor: 'rgba(211,47,47,1)',
                             type: 'bar',
                             yAxisID: 'y',
                             borderWidth: 0,
@@ -2491,7 +2567,7 @@
                         },
                         {
                             label: 'Profit',
-                            data: data.map(d => d.saldo),
+                            data: profitData,
                             borderColor: '#2e7d32',
                             backgroundColor: gradProfit,
                             type: 'line',
@@ -2575,9 +2651,7 @@
                         },
                         title: {
                             display: true,
-                            text: mobile
-                                ? `${monthName} ${year}`
-                                : `Performa Keuangan — ${monthName} ${year}`,
+                            text: chartTitle,
                             font: { size: mobile ? 12 : 15, weight: 'bold' },
                             color: '#1a5f7a',
                             padding: { top: 4, bottom: mobile ? 8 : 14 }
