@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Daily Report Tool</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -1160,7 +1160,7 @@
     <!-- Sticky Header -->
     <div class="sticky-header">
         <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-        <h1>📊 Financial Daily Report</h1>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
     </div>
 
     <!-- Sidebar Navigation -->
@@ -3111,15 +3111,15 @@
                 // Signature area - positioned dynamically AFTER table - RIGHT ALIGNED
                 yPosition += rowHeight + 8;
 
-                // Signature section - positioned to the RIGHT
+                // Signature section - rata kanan dengan tepi kanan tabel (simetris)
                 doc.setFont('Arial', 'normal');
                 doc.setFontSize(9);
-                const signatureRightMargin = margin + 10;
-                
-                doc.text(`${configSettings.location}, ${monthName.toUpperCase()} ${year}`, pageWidth - signatureRightMargin, yPosition, { align: 'right' });
+                const sigRightX = tableStartX + tableWidth; // tepi kanan tabel
+
+                doc.text(`${configSettings.location}, ${monthName.toUpperCase()} ${year}`, sigRightX, yPosition, { align: 'right' });
                 yPosition += 16;
 
-                doc.text(configSettings.atasanName, pageWidth - signatureRightMargin, yPosition, { align: 'right' });
+                doc.text(configSettings.atasanName, sigRightX, yPosition, { align: 'right' });
 
                 // Open PDF in new tab
                 const pdfBlob = doc.output('blob');
@@ -3245,12 +3245,12 @@
 
                 doc.setFont('Arial', 'normal');
                 doc.setFontSize(9);
-                const signatureRightMargin = margin + 10;
-                
-                doc.text(`${configSettings.location}, ${monthName.toUpperCase()} ${year}`, pageWidth - signatureRightMargin, yPosition, { align: 'right' });
+                const sigRightX = tableStartX + tableWidth; // tepi kanan tabel
+
+                doc.text(`${configSettings.location}, ${monthName.toUpperCase()} ${year}`, sigRightX, yPosition, { align: 'right' });
                 yPosition += 16;
 
-                doc.text(configSettings.atasanName, pageWidth - signatureRightMargin, yPosition, { align: 'right' });
+                doc.text(configSettings.atasanName, sigRightX, yPosition, { align: 'right' });
 
                 // Open PDF in new tab
                 const pdfBlob2 = doc.output('blob');
