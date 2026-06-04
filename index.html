@@ -1760,16 +1760,20 @@
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
         // ===== MONEY FORMAT HELPERS =====
-        // Ubah string "1.000.000" → number 1000000
+        // Ubah string "1.000.000" atau "-209.600" → number
         function parseNum(str) {
             if (typeof str === 'number') return str;
             if (!str) return 0;
-            // Hapus semua karakter selain digit
-            const cleaned = String(str).replace(/[^0-9]/g, '');
-            return cleaned ? parseInt(cleaned, 10) : 0;
+            const s = String(str).trim();
+            // Deteksi minus (jika ada '-' di mana pun, anggap negatif)
+            const isNeg = s.indexOf('-') !== -1;
+            const digits = s.replace(/[^0-9]/g, '');
+            if (!digits) return 0;
+            const n = parseInt(digits, 10);
+            return isNeg ? -n : n;
         }
 
-        // Ubah number 1000000 → string "1.000.000"
+        // Ubah number 1000000 → "1.000.000" (mendukung negatif)
         function formatNum(num) {
             const n = parseNum(num);
             return n.toLocaleString('id-ID');
@@ -1787,15 +1791,25 @@
                     const cursorPos = e.target.selectionStart;
                     const digitsBeforeCursor = oldValue.slice(0, cursorPos).replace(/[^0-9]/g, '').length;
 
-                    const num = parseNum(oldValue);
-                    const formatted = num === 0 && oldValue.replace(/[^0-9]/g,'') === '' ? '' : num.toLocaleString('id-ID');
+                    // Pertahankan tanda minus jika ada
+                    const isNeg = oldValue.indexOf('-') !== -1;
+                    const digitsOnly = oldValue.replace(/[^0-9]/g, '');
+
+                    let formatted;
+                    if (digitsOnly === '') {
+                        // Belum ada angka: biarkan "-" sendirian agar user bisa lanjut ketik
+                        formatted = isNeg ? '-' : '';
+                    } else {
+                        const num = parseInt(digitsOnly, 10) * (isNeg ? -1 : 1);
+                        formatted = num.toLocaleString('id-ID');
+                    }
                     e.target.value = formatted;
 
-                    // Posisikan ulang cursor (perkiraan)
+                    // Posisikan ulang cursor (perkiraan, hitung berdasar digit)
                     let newCursor = 0, digitCount = 0;
                     for (let i = 0; i < formatted.length; i++) {
                         if (/[0-9]/.test(formatted[i])) digitCount++;
-                        if (digitCount >= digitsBeforeCursor) { newCursor = i + 1; break; }
+                        if (digitCount >= digitsBeforeCursor && digitsBeforeCursor > 0) { newCursor = i + 1; break; }
                         newCursor = i + 1;
                     }
                     e.target.setSelectionRange(newCursor, newCursor);
