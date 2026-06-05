@@ -1401,6 +1401,83 @@
         body.dark .config-header { background: #22303a; border-bottom-color: #5fb0d0; }
         body.dark .config-header h2 { color: #6fc0e0; }
 
+        /* ===== RINGKASAN TAHUNAN ===== */
+        .annual-summary {
+            margin-top: 30px;
+            padding-top: 24px;
+            border-top: 2px dashed #e0e0e0;
+        }
+        .annual-title {
+            font-size: 17px;
+            color: #1a5f7a;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+        .annual-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .annual-card {
+            background: #f7f9fb;
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 4px solid #1a5f7a;
+        }
+        .annual-card.ac-revenue { border-left-color: #1976D2; }
+        .annual-card.ac-expense { border-left-color: #D32F2F; }
+        .annual-card.ac-profit  { border-left-color: #2e7d32; }
+        .annual-card.ac-avg     { border-left-color: #f39c12; }
+        .annual-card.ac-best    { border-left-color: #27ae60; }
+        .annual-card.ac-worst   { border-left-color: #95a5a6; }
+        .annual-card-label { font-size: 12px; color: #7f8c8d; font-weight: 600; margin-bottom: 6px; }
+        .annual-card-value { font-size: 19px; color: #2c3e50; font-weight: 800; }
+
+        .annual-table-wrap { overflow-x: auto; }
+        .annual-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .annual-table th {
+            background: #1a5f7a;
+            color: white;
+            padding: 10px 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .annual-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .annual-table tbody tr:hover { background: #f0f4f7; }
+        .annual-table .annual-row-empty td { color: #bbb; }
+        .annual-table .annual-total-row td {
+            background: #d4e6ef;
+            font-weight: 800;
+            color: #1a5f7a;
+            border-top: 2px solid #1a5f7a;
+        }
+        .annual-table .col-left { text-align: left; }
+        .annual-table .col-right { text-align: right; }
+
+        /* Dark mode untuk ringkasan tahunan */
+        body.dark .annual-summary { border-top-color: #32434d; }
+        body.dark .annual-title { color: #5fb0d0; }
+        body.dark .annual-card { background: #19232a; }
+        body.dark .annual-card-label { color: #9aa7af; }
+        body.dark .annual-card-value { color: #dfe6ea; }
+        body.dark .annual-table td { border-bottom-color: #32434d; color: #dfe6ea; }
+        body.dark .annual-table tbody tr:hover { background: #26333b; }
+        body.dark .annual-table .annual-total-row td { background: #1a3a4a; color: #6fc0e0; }
+        body.dark .annual-table .annual-row-empty td { color: #667; }
+
+        @media (max-width: 600px) {
+            .annual-cards { grid-template-columns: repeat(2, 1fr); }
+            .annual-card-value { font-size: 16px; }
+        }
+
     </style>
 </head>
 <body>
@@ -1752,6 +1829,53 @@
             <div id="trendInfo" style="display:none; background: #f0f4f7; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
                 <strong>📈 Trend Analysis:</strong>
                 <p id="trendText" style="margin-top: 10px;"></p>
+            </div>
+
+            <!-- ===== RINGKASAN TAHUNAN ===== -->
+            <div class="annual-summary">
+                <h3 class="annual-title"><span data-i18n="annual_title">📅 Ringkasan Tahunan</span> <span id="annualYear">2026</span></h3>
+
+                <div class="annual-cards">
+                    <div class="annual-card ac-revenue">
+                        <div class="annual-card-label" data-i18n="annual_revenue">Total Pemasukan</div>
+                        <div class="annual-card-value" id="annualRevenue">Rp 0</div>
+                    </div>
+                    <div class="annual-card ac-expense">
+                        <div class="annual-card-label" data-i18n="annual_expense">Total Pengeluaran</div>
+                        <div class="annual-card-value" id="annualExpense">Rp 0</div>
+                    </div>
+                    <div class="annual-card ac-profit">
+                        <div class="annual-card-label" data-i18n="annual_profit">Laba Bersih</div>
+                        <div class="annual-card-value" id="annualProfit">Rp 0</div>
+                    </div>
+                    <div class="annual-card ac-avg">
+                        <div class="annual-card-label" data-i18n="annual_avg">Rata-rata/Bulan</div>
+                        <div class="annual-card-value" id="annualAvg">Rp 0</div>
+                    </div>
+                    <div class="annual-card ac-best">
+                        <div class="annual-card-label" data-i18n="annual_best">🏆 Bulan Terbaik</div>
+                        <div class="annual-card-value" id="annualBest">—</div>
+                    </div>
+                    <div class="annual-card ac-worst">
+                        <div class="annual-card-label" data-i18n="annual_worst">Bulan Terendah</div>
+                        <div class="annual-card-value" id="annualWorst">—</div>
+                    </div>
+                </div>
+
+                <div class="annual-table-wrap">
+                    <table class="annual-table">
+                        <thead>
+                            <tr>
+                                <th class="col-left" data-i18n="annual_th_month">Bulan</th>
+                                <th class="col-right" data-i18n="annual_th_revenue">Pemasukan</th>
+                                <th class="col-right" data-i18n="annual_th_expense">Pengeluaran</th>
+                                <th class="col-right" data-i18n="annual_th_profit">Laba</th>
+                                <th class="col-right" data-i18n="annual_th_margin">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="annualTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -2295,9 +2419,12 @@
                 pdf_print:'🖨️ Print', pdf_download:'⬇️ Download PDF', update_text:'🔄 New version available', update_btn:'Update',
                 dt_title:'Data of', form_title:'Daily Data Entry', form_edit:'Edit Data for Day',
                 chart_year:'Year', chart_monthly:'Monthly Performance', chart_daily:'Daily Performance',
-                chart_revenue:'Revenue', chart_expense:'Expense', chart_profit:'Profit'
-            },
-            id: {
+                chart_revenue:'Revenue', chart_expense:'Expense', chart_profit:'Profit',
+                annual_title:'📅 Annual Summary', annual_revenue:'Total Revenue', annual_expense:'Total Expense',
+                annual_profit:'Net Profit', annual_avg:'Average/Month', annual_best:'🏆 Best Month', annual_worst:'Lowest Month',
+                annual_th_month:'Month', annual_th_revenue:'Revenue', annual_th_expense:'Expense', annual_th_profit:'Profit',
+                annual_th_margin:'Margin', annual_total:'TOTAL'
+            },            id: {
                 menu_title:'Menu', nav_input:'Input Data', nav_dashboard:'Dasbor', nav_pajak:'Laporan Pajak',
                 nav_export:'Ekspor', nav_install:'Pasang Aplikasi', nav_setting:'Pengaturan', nav_config:'Konfigurasi',
                 cfg_title:'⚙️ KONFIGURASI SISTEM', cfg_business:'Nama Bisnis/Warung *', cfg_business_ph:'Nama Bisnis/Warung',
@@ -2336,7 +2463,11 @@
                 pdf_print:'🖨️ Cetak', pdf_download:'⬇️ Unduh PDF', update_text:'🔄 Versi baru tersedia', update_btn:'Perbarui',
                 dt_title:'Data Bulan', form_title:'Input Data Harian', form_edit:'Edit Data Tanggal',
                 chart_year:'Tahun', chart_monthly:'Performa Bulanan', chart_daily:'Performa Harian',
-                chart_revenue:'Pemasukan', chart_expense:'Pengeluaran', chart_profit:'Laba'
+                chart_revenue:'Pemasukan', chart_expense:'Pengeluaran', chart_profit:'Laba',
+                annual_title:'📅 Ringkasan Tahunan', annual_revenue:'Total Pemasukan', annual_expense:'Total Pengeluaran',
+                annual_profit:'Laba Bersih', annual_avg:'Rata-rata/Bulan', annual_best:'🏆 Bulan Terbaik', annual_worst:'Bulan Terendah',
+                annual_th_month:'Bulan', annual_th_revenue:'Pemasukan', annual_th_expense:'Pengeluaran', annual_th_profit:'Laba',
+                annual_th_margin:'Margin', annual_total:'TOTAL'
             }
         };
 
@@ -2972,6 +3103,70 @@
 
             updateChart();
             updateTrendAlert(metrics);
+            updateAnnualSummary();
+        }
+
+        // ===== RINGKASAN TAHUNAN =====
+        function updateAnnualSummary() {
+            const year = parseInt(document.getElementById('yearSelect').value);
+            document.getElementById('annualYear').textContent = year;
+
+            const fmt = isMobile() ? formatKPI : (n) => 'Rp ' + n.toLocaleString('id-ID');
+            const tbody = document.getElementById('annualTableBody');
+            tbody.innerHTML = '';
+
+            let totRev = 0, totExp = 0, totProfit = 0;
+            let monthsWithData = 0;
+            let best = null, worst = null;
+
+            for (let m = 1; m <= 12; m++) {
+                const data = appData[`${year}-${m}`] || [];
+                const has = data.length > 0;
+                const row = tbody.insertRow();
+
+                if (!has) {
+                    row.className = 'annual-row-empty';
+                    row.innerHTML = `<td class="col-left">${dispMonth(m - 1)}</td>
+                        <td class="col-right">—</td><td class="col-right">—</td>
+                        <td class="col-right">—</td><td class="col-right">—</td>`;
+                    continue;
+                }
+
+                const revenue = data.reduce((s, i) => s + i.totalPenjualan, 0);
+                const expense = data.reduce((s, i) => s + i.totalPengeluaran, 0);
+                const profit  = data[data.length - 1].saldo;
+                const margin  = revenue > 0 ? (profit / revenue * 100) : 0;
+
+                totRev += revenue; totExp += expense; totProfit += profit; monthsWithData++;
+
+                if (!best || profit > best.profit)  best  = { name: dispMonth(m - 1), profit };
+                if (!worst || profit < worst.profit) worst = { name: dispMonth(m - 1), profit };
+
+                row.innerHTML = `<td class="col-left">${dispMonth(m - 1)}</td>
+                    <td class="col-right">${fmt(revenue)}</td>
+                    <td class="col-right">${fmt(expense)}</td>
+                    <td class="col-right">${fmt(profit)}</td>
+                    <td class="col-right">${margin.toFixed(0)}%</td>`;
+            }
+
+            // Baris TOTAL
+            const totMargin = totRev > 0 ? (totProfit / totRev * 100) : 0;
+            const totalRow = tbody.insertRow();
+            totalRow.className = 'annual-total-row';
+            totalRow.innerHTML = `<td class="col-left">${t('annual_total','TOTAL')}</td>
+                <td class="col-right">${fmt(totRev)}</td>
+                <td class="col-right">${fmt(totExp)}</td>
+                <td class="col-right">${fmt(totProfit)}</td>
+                <td class="col-right">${totMargin.toFixed(0)}%</td>`;
+
+            // Kartu ringkasan
+            document.getElementById('annualRevenue').textContent = fmt(totRev);
+            document.getElementById('annualExpense').textContent = fmt(totExp);
+            document.getElementById('annualProfit').textContent  = fmt(totProfit);
+            document.getElementById('annualAvg').textContent =
+                monthsWithData > 0 ? fmt(Math.round(totProfit / monthsWithData)) : 'Rp 0';
+            document.getElementById('annualBest').textContent  = best  ? best.name  : '—';
+            document.getElementById('annualWorst').textContent = worst ? worst.name : '—';
         }
 
         function setChartMode(mode) {
