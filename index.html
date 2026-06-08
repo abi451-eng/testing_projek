@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Financial Daily</title>
+    <title>Financial Daily Report Tool V4.5 Extended</title>
 
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json">
@@ -1692,7 +1692,7 @@
     <!-- Sticky Header -->
     <div class="sticky-header">
         <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-        <h1>📊 Financial Daily Report</h1>
+        <h1>📊 Financial Daily Report V4.5 Extended</h1>
         <button class="header-search-btn" id="headerSearchBtn" onclick="openSearch()" aria-label="Cari" title="Cari data">🔍</button>
     </div>
 
@@ -1729,7 +1729,6 @@
         <div class="sidebar-footer">
             <button class="sidebar-item" id="installAppBtn" onclick="installApp()" style="display:none; color:#27ae60;">⬇️ <span data-i18n="nav_install">Install Aplikasi</span></button>
             <button class="sidebar-item" data-view="setting" onclick="showView('setting', this)">🎛️ <span data-i18n="nav_setting">Setting</span></button>
-            <button class="sidebar-item" onclick="toggleConfig(); closeSidebar();">⚙️ <span data-i18n="nav_config">Konfigurasi</span></button>
         </div>
     </nav>
 
@@ -1737,57 +1736,7 @@
         <!-- Success Banner -->
         <div id="successBanner" class="success-banner"></div>
 
-        <!-- Collapsible Config Section -->
-        <div class="config-section collapsed" id="configSection">
-            <div class="config-header" onclick="toggleConfig()">
-                <h2 data-i18n="cfg_title">⚙️ KONFIGURASI SISTEM</h2>
-                <span class="toggle-icon">▼</span>
-            </div>
 
-            <div class="config-content">
-                <div class="config-grid">
-                    <div class="config-group">
-                        <label data-i18n="cfg_business">Nama Bisnis/Warung *</label>
-                        <input type="text" id="companyName" placeholder="Nama Bisnis/Warung" data-i18n-ph="cfg_business_ph">
-                    </div>
-
-                    <div class="config-group">
-                        <label data-i18n="cfg_address">Alamat/Lokasi *</label>
-                        <input type="text" id="ppnTitle" placeholder="Alamat/Lokasi" data-i18n-ph="cfg_address_ph">
-                    </div>
-
-                    <div class="config-group">
-                        <label data-i18n="cfg_city">Kabupaten/Kota *</label>
-                        <input type="text" id="location" placeholder="Kabupaten/Kota" data-i18n-ph="cfg_city_ph">
-                    </div>
-
-                    <div class="config-group">
-                        <label data-i18n="cfg_boss">Nama Atasan *</label>
-                        <input type="text" id="atasanName" placeholder="Nama Atasan" data-i18n-ph="cfg_boss_ph">
-                    </div>
-                </div>
-
-                <div class="config-rates">
-                    <p><strong>⚠️ Flexible Tax & Commission Rates</strong></p>
-                    <div class="rate-inputs">
-                        <div class="config-group">
-                            <label data-i18n="cfg_ppn_rate">Tarif PPN (%)</label>
-                            <input type="number" id="ppnRate" value="10" min="0" max="100" step="0.1">
-                        </div>
-                        <div class="config-group">
-                            <label data-i18n="cfg_royalti_rate">Tarif Royalti (%)</label>
-                            <input type="number" id="royaltiRate" value="3" min="0" max="100" step="0.1">
-                        </div>
-                        <div class="config-group">
-                            <label data-i18n="cfg_ppn_royalti_rate">Tarif PPN pada Royalti (%)</label>
-                            <input type="number" id="ppnOnRoyaltiRate" value="11" min="0" max="100" step="0.1">
-                        </div>
-                    </div>
-                </div>
-
-                <button class="save-config-btn" onclick="saveConfig()" data-i18n="cfg_save">💾 Simpan Konfigurasi</button>
-            </div>
-        </div>
 
         <!-- ===== VIEW: INPUT ===== -->
         <div class="view-panel active" id="view-input">
@@ -1859,42 +1808,42 @@
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_total_sales">Total Penjualan *</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('totalPenjualan')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_total_sales">Total Penjualan *</label>
                     <input type="text" inputmode="numeric" id="totalPenjualan" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_cash">Saldo Akhir/Tunai *</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('tunai')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_cash">Saldo Akhir/Tunai *</label>
                     <input type="text" inputmode="numeric" id="tunai" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_qris">QRIS</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('qris')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_qris">QRIS</label>
                     <input type="text" inputmode="numeric" id="qris" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_edc">EDC</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('edc')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_edc">EDC</label>
                     <input type="text" inputmode="numeric" id="edc" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_transfer">Transfer</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('transfer')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_transfer">Transfer</label>
                     <input type="text" inputmode="numeric" id="transfer" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_gojek">GoJek</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('gojek')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_gojek">GoJek</label>
                     <input type="text" inputmode="numeric" id="gojek" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_grab">Grab</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('grab')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_grab">Grab</label>
                     <input type="text" inputmode="numeric" id="grab" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_pesanan">Pesanan</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('pesanan')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_pesanan">Pesanan</label>
                     <input type="text" inputmode="numeric" id="pesanan" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
@@ -1904,17 +1853,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_belanja_sore">Belanja Sore</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('belanjaSore')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_belanja_sore">Belanja Sore</label>
                     <input type="text" inputmode="numeric" id="belanjaSore" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_daging">Daging</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('daging')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_daging">Daging</label>
                     <input type="text" inputmode="numeric" id="daging" class="money-input" placeholder="0" autocomplete="off">
                 </div>
 
                 <div class="form-group">
-                    <label class="lbl-with-copy"><span data-i18n="lbl_dll">Dan Lain-Lain</span><button class="copy-field-btn" type="button" onclick="copyFieldLast('dll')" title="Salin nilai terakhir">📋</button></label>
+                    <label data-i18n="lbl_dll">Dan Lain-Lain</label>
                     <input type="text" inputmode="numeric" id="dll" class="money-input" placeholder="0" autocomplete="off">
                 </div>
             </div>
@@ -2218,6 +2167,53 @@
 
         <!-- ===== VIEW: EXPORT ===== -->
         <div class="view-panel" id="view-export">
+        <!-- Konfigurasi (digabung ke Export, di atas pilihan export) -->
+        <div class="data-section">
+            <h2 data-i18n="cfg_title">⚙️ KONFIGURASI SISTEM</h2>
+            <p style="font-size:13px; color:#888; margin:-6px 0 16px;" data-i18n="cfg_hint">Isi data ini dulu sebelum export PDF (PPN & Royalti).</p>
+            <div class="config-grid">
+                    <div class="config-group">
+                        <label data-i18n="cfg_business">Nama Bisnis/Warung *</label>
+                        <input type="text" id="companyName" placeholder="Nama Bisnis/Warung" data-i18n-ph="cfg_business_ph">
+                    </div>
+
+                    <div class="config-group">
+                        <label data-i18n="cfg_address">Alamat/Lokasi *</label>
+                        <input type="text" id="ppnTitle" placeholder="Alamat/Lokasi" data-i18n-ph="cfg_address_ph">
+                    </div>
+
+                    <div class="config-group">
+                        <label data-i18n="cfg_city">Kabupaten/Kota *</label>
+                        <input type="text" id="location" placeholder="Kabupaten/Kota" data-i18n-ph="cfg_city_ph">
+                    </div>
+
+                    <div class="config-group">
+                        <label data-i18n="cfg_boss">Nama Atasan *</label>
+                        <input type="text" id="atasanName" placeholder="Nama Atasan" data-i18n-ph="cfg_boss_ph">
+                    </div>
+                </div>
+
+                <div class="config-rates">
+                    <p><strong>⚠️ Flexible Tax & Commission Rates</strong></p>
+                    <div class="rate-inputs">
+                        <div class="config-group">
+                            <label data-i18n="cfg_ppn_rate">Tarif PPN (%)</label>
+                            <input type="number" id="ppnRate" value="10" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="config-group">
+                            <label data-i18n="cfg_royalti_rate">Tarif Royalti (%)</label>
+                            <input type="number" id="royaltiRate" value="3" min="0" max="100" step="0.1">
+                        </div>
+                        <div class="config-group">
+                            <label data-i18n="cfg_ppn_royalti_rate">Tarif PPN pada Royalti (%)</label>
+                            <input type="number" id="ppnOnRoyaltiRate" value="11" min="0" max="100" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="save-config-btn" onclick="saveConfig()" data-i18n="cfg_save">💾 Simpan Konfigurasi</button>
+        </div>
+
         <!-- Export Options -->
         <div id="exportSection" style="display:none;" class="data-section">
             <h2 data-i18n="export_title">📥 PILIHAN EXPORT</h2>
@@ -2633,7 +2629,7 @@
         let currentLang = localStorage.getItem('appLang') || 'default';
 
         // ⚠️ NOMOR VERSI APP — samakan dengan angka di sw.js (CACHE_NAME) tiap update.
-        const APP_VERSION = 'v4.6.2';
+        const APP_VERSION = 'v4.6.4';
 
         // Bulan untuk TAMPILAN (kalender, grafik, tanggal). Dokumen tetap pakai 'months' (Indonesia).
         const monthsEN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2653,7 +2649,7 @@
                 cfg_title:'⚙️ SYSTEM CONFIGURATION', cfg_business:'Business Name *', cfg_business_ph:'Business Name',
                 cfg_address:'Address/Location *', cfg_address_ph:'Address/Location', cfg_city:'City/Regency *', cfg_city_ph:'City/Regency',
                 cfg_boss:'Supervisor Name *', cfg_boss_ph:'Supervisor Name', cfg_ppn_rate:'VAT Rate (%)',
-                cfg_royalti_rate:'Royalty Rate (%)', cfg_ppn_royalti_rate:'VAT on Royalty Rate (%)', cfg_save:'💾 Save Configuration',
+                cfg_royalti_rate:'Royalty Rate (%)', cfg_ppn_royalti_rate:'VAT on Royalty Rate (%)', cfg_save:'💾 Save Configuration', cfg_hint:'Fill this in before exporting PDF (VAT & Royalty).',
                 date_label:'📆 Report Date:', wd0:'Sun', wd1:'Mon', wd2:'Tue', wd3:'Wed', wd4:'Thu', wd5:'Fri', wd6:'Sat', cal_today:'● Today',
                 lbl_total_sales:'Total Sales *', lbl_cash:'Ending Balance/Cash *', lbl_qris:'QRIS', lbl_edc:'EDC',
                 lbl_transfer:'Transfer', lbl_gojek:'GoJek', lbl_grab:'Grab', lbl_pesanan:'Orders',
@@ -2702,7 +2698,7 @@
                 cfg_title:'⚙️ KONFIGURASI SISTEM', cfg_business:'Nama Bisnis/Warung *', cfg_business_ph:'Nama Bisnis/Warung',
                 cfg_address:'Alamat/Lokasi *', cfg_address_ph:'Alamat/Lokasi', cfg_city:'Kabupaten/Kota *', cfg_city_ph:'Kabupaten/Kota',
                 cfg_boss:'Nama Atasan *', cfg_boss_ph:'Nama Atasan', cfg_ppn_rate:'Tarif PPN (%)',
-                cfg_royalti_rate:'Tarif Royalti (%)', cfg_ppn_royalti_rate:'Tarif PPN pada Royalti (%)', cfg_save:'💾 Simpan Konfigurasi',
+                cfg_royalti_rate:'Tarif Royalti (%)', cfg_ppn_royalti_rate:'Tarif PPN pada Royalti (%)', cfg_save:'💾 Simpan Konfigurasi', cfg_hint:'Isi data ini dulu sebelum export PDF (PPN & Royalti).',
                 date_label:'📆 Tanggal Laporan:', wd0:'Min', wd1:'Sen', wd2:'Sel', wd3:'Rab', wd4:'Kam', wd5:'Jum', wd6:'Sab', cal_today:'● Hari Ini',
                 lbl_total_sales:'Total Penjualan *', lbl_cash:'Saldo Akhir/Tunai *', lbl_qris:'QRIS', lbl_edc:'EDC',
                 lbl_transfer:'Transfer', lbl_gojek:'GoJek', lbl_grab:'Grab', lbl_pesanan:'Pesanan',
@@ -2910,14 +2906,12 @@
         }
 
         function toggleConfig() {
+            // Konfigurasi kini berada di dalam menu Export (tidak lagi collapsible).
+            // Fungsi dipertahankan agar tidak ada referensi yang error.
             const section = document.getElementById('configSection');
+            if (!section) return;
             configExpanded = !configExpanded;
-            
-            if (configExpanded) {
-                section.classList.remove('collapsed');
-            } else {
-                section.classList.add('collapsed');
-            }
+            section.classList.toggle('collapsed', !configExpanded);
         }
 
         function attachEventListeners() {
@@ -3095,7 +3089,7 @@
             const backup = {
                 _meta: {
                     app: 'Financial Daily Report',
-                    version: 'V4.5',
+                    version: 'V4.6',
                     exportedAt: new Date().toISOString()
                 },
                 financialData: appData,
